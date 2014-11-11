@@ -3,11 +3,11 @@
 var app = {
   friends: {},
   server: 'https://api.parse.com/1/classes/chatterbox',
-  lastCall: (new Date(2014,10,1,0,0,0,0)).toISOString(),
+  lastCall: (new Date()).toISOString(),
   rooms: {
     '"lobby"': true,
     '"superLobby"': true
-  }
+  },
 };
 // UTILITY METHODS
 // String scrubber
@@ -27,6 +27,7 @@ app._scrubber = function(s) {
 app.init = function() {
   // init
   this.fetch();
+  //setInterval(this._checkRoom.bind(this), 1000);
   setInterval(this.fetch.bind(this), 5000);
 };
 //SERVER REQUESTS
@@ -65,6 +66,7 @@ app.fetch = function(){
       if (data.results.length > 0) {
         app.lastCall = data.results[i - 1].createdAt;
       }
+      app._checkRoom();
     },
     error: function(data){
       console.error(data);
@@ -92,21 +94,18 @@ app.addRoom = function(room) {
   }
 };
 // 
-app._checkRoom = function(isIncremental) {
+app._checkRoom = function() {
   var selectRoom = $('#roomSelect').val();
   var allMessages = $('.message');
   if (selectRoom !== '"lobby"' && selectRoom !== '"superLobby"') {
-    if (isIncremental) {
-    } else {
-      for (var i = 0; i < allMessages.length; i++) {
-        var currentMessage = $(allMessages[i]);
-        var room = currentMessage.find('.room').text();
-        room = room.substr(6);
-        if (room === selectRoom) {
-          currentMessage.show();
-        } else {
-          currentMessage.hide();
-        }
+    for (var i = 0; i < allMessages.length; i++) {
+      var currentMessage = $(allMessages[i]);
+      var room = currentMessage.find('.room').text();
+      room = room.substr(6);
+      if (room === selectRoom) {
+        currentMessage.show();
+      } else {
+        currentMessage.hide();
       }
     }
   } else {
@@ -131,7 +130,7 @@ app.handleSubmit = function() {
   //grabs mesage from text area
   packagedMessage.text = $('#message').val();
   //get roomname from room input field or lobby
-  packagedMessage.roomname = $('#roomSelect').val() || 'lobby';
+  packagedMessage.roomname = JSON.parse($('#roomSelect').val()) || 'lobby';
   this.send(packagedMessage);
 };
 //resets message input fields
