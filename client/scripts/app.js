@@ -3,7 +3,11 @@
 var app = {
   friends: {},
   server: 'https://api.parse.com/1/classes/chatterbox',
-  lastCall: (new Date(2014,10,1,0,0,0,0)).toISOString()
+  lastCall: (new Date(2014,10,1,0,0,0,0)).toISOString(),
+  rooms: {
+    '"lobby"': true,
+    '"superLobby"': true
+  }
 };
 // UTILITY METHODS
 // String scrubber
@@ -22,7 +26,8 @@ app._scrubber = function(s) {
 // must be called before other methods
 app.init = function() {
   // init
-  setInterval(this.fetch.bind(this), 1000);
+  this.fetch();
+  setInterval(this.fetch.bind(this), 5000);
 };
 //SERVER REQUESTS
 // post data to server
@@ -57,9 +62,9 @@ app.fetch = function(){
       for (var i = 0; i < data.results.length; i++){
         app.addMessage(data.results[i]);
       }
-
-      app.lastCall = data.results[i - 1].createdAt;
-
+      if (data.results.length > 0) {
+        app.lastCall = data.results[i - 1].createdAt;
+      }
     },
     error: function(data){
       console.error(data);
@@ -76,11 +81,15 @@ app.addMessage = function(message) {
   message.username = this._scrubber(message.username);
   message.text = this._scrubber(message.text);
   message.roomname = this._scrubber(message.roomname);
-  $('#chats').prepend('<div><p class="username">' + message.username + '</p><p>' + message.text + '</p><p>' + message.roomname + '</p></div');
+  $('#chats').prepend('<div class="message"><p class="username">Username: ' + message.username + '</p><p class="messageText">Message: ' + message.text + '</p><p class="room">Room: ' + message.roomname + '</p></div');
 };
 // appends a new room to roomSelect
 app.addRoom = function(room) {
-  $('#roomSelect').append('<option value="' + room + '">' + room + '</option>');
+  room = app._scrubber(room);
+  if (!app.rooms[room]) {
+    app.rooms[room] = true;
+    $('#roomSelect').append('<option value="' + room + '">' + room + '</option>');
+  }
 };
 // adds friend is utilized by other DOM manipulation methods for styling
 app.addFriend = function(friend) {
@@ -105,6 +114,11 @@ app.handleSubmit = function() {
 app.handleSubmit.restore = function() {
   $('#message').val('');
 };
+//accepts input room and adds it
+app.handleRoom = function() {
+  var packagedRoom = $('#newRoom').val();
+  this.addRoom(packagedRoom);
+};
 // DOM RELATED EVENTS
 // ensure DOM is loaded before enabling event handlers
 $(document).ready(function() {
@@ -116,6 +130,11 @@ $(document).ready(function() {
   $('.submit').on('click',function(e) {
     e.preventDefault();
     app.handleSubmit();
+  });
+  //should call app.handleRoom when a user submites a new room
+  $('.submitRoom').on('click',function(e) {
+    e.preventDefault();
+    app.handleRoom();
   });
 });
 app.init();
