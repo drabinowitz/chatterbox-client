@@ -81,14 +81,38 @@ app.addMessage = function(message) {
   message.username = this._scrubber(message.username);
   message.text = this._scrubber(message.text);
   message.roomname = this._scrubber(message.roomname);
-  $('#chats').prepend('<div class="message"><p class="username">Username: ' + message.username + '</p><p class="messageText">Message: ' + message.text + '</p><p class="room">Room: ' + message.roomname + '</p></div');
+  $('#chats').prepend('<div class="message"><p class="username">Username: ' + message.username + '</p><p class="messageText">Message: ' + message.text + '</p><p class="room">Room: ' + message.roomname + '</p><p class="createdAt">Date: ' + message.createdAt + '</p></div');
 };
 // appends a new room to roomSelect
 app.addRoom = function(room) {
   room = app._scrubber(room);
   if (!app.rooms[room]) {
     app.rooms[room] = true;
-    $('#roomSelect').append('<option value="' + room + '">' + room + '</option>');
+    $('#roomSelect').append('<option value=\'' + room + '\'>' + room + '</option>');
+  }
+};
+// 
+app._checkRoom = function(isIncremental) {
+  var selectRoom = $('#roomSelect').val();
+  var allMessages = $('.message');
+  if (selectRoom !== '"lobby"' && selectRoom !== '"superLobby"') {
+    if (isIncremental) {
+    } else {
+      for (var i = 0; i < allMessages.length; i++) {
+        var currentMessage = $(allMessages[i]);
+        var room = currentMessage.find('.room').text();
+        room = room.substr(6);
+        if (room === selectRoom) {
+          currentMessage.show();
+        } else {
+          currentMessage.hide();
+        }
+      }
+    }
+  } else {
+    for (var i = 0; i < allMessages.length; i++) {
+      $(allMessages[i]).show();
+    }
   }
 };
 // adds friend is utilized by other DOM manipulation methods for styling
@@ -119,6 +143,10 @@ app.handleRoom = function() {
   var packagedRoom = $('#newRoom').val();
   this.addRoom(packagedRoom);
 };
+// resets newRoom input field
+app.handleRoom.restore = function() {
+  $('#newRoom').val('');
+}
 // DOM RELATED EVENTS
 // ensure DOM is loaded before enabling event handlers
 $(document).ready(function() {
@@ -135,6 +163,11 @@ $(document).ready(function() {
   $('.submitRoom').on('click',function(e) {
     e.preventDefault();
     app.handleRoom();
+    app.handleRoom.restore();
+  });
+  //
+  $('#roomSelect').on('change', function() {
+    app._checkRoom(false);
   });
 });
 app.init();
