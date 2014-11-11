@@ -4,6 +4,17 @@ var app = {
   friends: {},
   server: 'https://api.parse.com/1/classes/chatterbox'
 };
+// UTILITY METHODS
+// String scrubber
+app._scrubber = function(s) {
+  var outputString = s.replace(/<script>/g, 'block');
+  outputString = outputString.replace(/src=/g, 'block');
+  outputString = outputString.replace(/javascript:/g, 'block');
+  outputString = JSON.stringify(outputString);
+
+  return outputString;
+};
+// BACKEND METHODS
 // initializes application
 // must be called before other methods
 app.init = function() {
@@ -59,6 +70,9 @@ app.clearMessages = function() {
 };
 // appends a new message to chats
 app.addMessage = function(message) {
+  message.username = this._scrubber(message.username);
+  message.text = this._scrubber(message.text);
+  message.roomname = this._scrubber(message.roomname);
   $('#chats').prepend('<div><p class="username">' + message.username + '</p><p>' + message.text + '</p><p>' + message.roomname + '</p></div');
 };
 // appends a new room to roomSelect
