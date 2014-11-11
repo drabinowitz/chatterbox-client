@@ -62,6 +62,7 @@ app.fetch = function(){
 
       for (var i = 0; i < data.results.length; i++){
         app.addMessage(data.results[i]);
+        app.addRoom(data.results[i].roomname);
       }
       if (data.results.length > 0) {
         app.lastCall = data.results[i - 1].createdAt;
@@ -80,10 +81,10 @@ app.clearMessages = function() {
 };
 // appends a new message to chats
 app.addMessage = function(message) {
-  message.username = this._scrubber(message.username);
-  message.text = this._scrubber(message.text);
-  message.roomname = this._scrubber(message.roomname);
-  $('#chats').prepend('<div class="message"><p class="username">Username: ' + message.username + '</p><p class="messageText">Message: ' + message.text + '</p><p class="room">Room: ' + message.roomname + '</p><p class="createdAt">Date: ' + message.createdAt + '</p></div');
+  var username = this._scrubber(message.username);
+  var text = this._scrubber(message.text);
+  var roomname = this._scrubber(message.roomname);
+  $('#chats').prepend('<div class="message"><p class="username">Username: ' + username + '</p><p class="messageText">Message: ' + text + '</p><p class="room">Room: ' + roomname + '</p><p class="createdAt">Date: ' + message.createdAt + '</p></div');
 };
 // appends a new room to roomSelect
 app.addRoom = function(room) {
