@@ -8,6 +8,7 @@ var app = {
 // must be called before other methods
 app.init = function() {
   // init
+  setInterval(this.fetch.bind(this), 1000);
 };
 //SERVER REQUESTS
 // post data to server
@@ -32,12 +33,19 @@ app.send = function(message) {
 // gets data from server
 // expects to get data messages as objects with properties username, text, roomname
 app.fetch = function(){
+  var urlQuery = this.lastCall ? this.server + '?where={"createdAt":{"$gt":{"__type":"Date","iso":' + this.lastCall + '}}}' : this.server;
   $.ajax({
-    url: this.server,
+    url: urlQuery,
     type: 'GET',
     contentType: 'application/json',
     success: function(data) {
-      console.log(data);
+
+      for (var i = 0; i < data.results.length; i++){
+        app.addMessage(data.results[i]);
+      }
+
+      app.lastCall = data.results[i - 1].createdAt;
+
     },
     error: function(data){
       console.error(data);
@@ -51,7 +59,7 @@ app.clearMessages = function() {
 };
 // appends a new message to chats
 app.addMessage = function(message) {
-  $('#chats').append('<div><p class="username">' + message.username + '</p><p>' + message.text + '</p><p>' + message.roomname + '</p></div');
+  $('#chats').prepend('<div><p class="username">' + message.username + '</p><p>' + message.text + '</p><p>' + message.roomname + '</p></div');
 };
 // appends a new room to roomSelect
 app.addRoom = function(room) {
@@ -92,3 +100,4 @@ $(document).ready(function() {
     app.handleSubmit();
   });
 });
+app.init();
