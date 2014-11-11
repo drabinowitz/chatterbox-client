@@ -2,15 +2,18 @@
 // app objects will be stored here
 var app = {
   friends: {},
-  server: 'https://api.parse.com/1/classes/chatterbox'
+  server: 'https://api.parse.com/1/classes/chatterbox',
+  lastCall: (new Date(2014,10,1,0,0,0,0)).toISOString()
 };
 // UTILITY METHODS
 // String scrubber
 app._scrubber = function(s) {
-  var outputString = s.replace(/<script>/g, 'block');
-  outputString = outputString.replace(/src=/g, 'block');
-  outputString = outputString.replace(/javascript:/g, 'block');
-  outputString = JSON.stringify(outputString);
+  if (typeof(s) === 'string') {
+    var outputString = s.replace(/<script>/g, 'block');
+    outputString = outputString.replace(/src=/g, 'block');
+    outputString = outputString.replace(/javascript:/g, 'block');
+    outputString = JSON.stringify(outputString);
+  }
 
   return outputString;
 };
@@ -44,7 +47,7 @@ app.send = function(message) {
 // gets data from server
 // expects to get data messages as objects with properties username, text, roomname
 app.fetch = function(){
-  var urlQuery = this.lastCall ? this.server + '?where={"createdAt":{"$gt":{"__type":"Date","iso":' + this.lastCall + '}}}' : this.server;
+  var urlQuery = this.lastCall ? this.server + '?where={"createdAt":{"$gt":{"__type":"Date","iso":"' + this.lastCall + '"}}}' : this.server;
   $.ajax({
     url: urlQuery,
     type: 'GET',
@@ -110,7 +113,8 @@ $(document).ready(function() {
     app.addFriend($(e.target).text());
   });
   // should call app.handleSubmit when a user submits a new message on the DOM
-  $('.submit').on('submit',function(e) {
+  $('.submit').on('click',function(e) {
+    e.preventDefault();
     app.handleSubmit();
   });
 });
