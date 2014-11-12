@@ -27,7 +27,6 @@ app._scrubber = function(s) {
 app.init = function() {
   // init
   this.fetch();
-  //setInterval(this._checkRoom.bind(this), 1000);
   setInterval(this.fetch.bind(this), 5000);
 };
 //SERVER REQUESTS
@@ -68,6 +67,7 @@ app.fetch = function(){
         app.lastCall = data.results[i - 1].createdAt;
       }
       app._checkRoom();
+      app._checkFriend();
     },
     error: function(data){
       console.error(data);
@@ -94,7 +94,7 @@ app.addRoom = function(room) {
     $('#roomSelect').append('<option value=\'' + room + '\'>' + room + '</option>');
   }
 };
-// 
+// check messages and filter those which are not in the current room 
 app._checkRoom = function() {
   var selectRoom = $('#roomSelect').val();
   var allMessages = $('.message');
@@ -115,6 +115,17 @@ app._checkRoom = function() {
     }
   }
 };
+//check messages and bold those which are from friends
+app._checkFriend = function() {
+  var allMessages = $('.message');
+  for (var i = 0; i < allMessages.length; i++){
+    var currentMessage = $(allMessages[i]);
+    var username = currentMessage.find('.username').text().substr(10);
+    if (this.friends[username]){
+      currentMessage.addClass('friend');
+    }
+  }
+};
 // adds friend is utilized by other DOM manipulation methods for styling
 app.addFriend = function(friend) {
   this.friends[friend] = true;
@@ -122,6 +133,13 @@ app.addFriend = function(friend) {
 // method for resetting friends to null
 app.addFriend.restore = function() {
   this.friends = {}; 
+};
+//handle friend event from clikcing username
+app.handleFriend = function(friend) {
+  //extract name from input
+  var getName = friend.substr(10);
+  app.addFriend(getName);
+  app._checkFriend();
 };
 //accepts input message and submits it
 app.handleSubmit = function() {
@@ -152,7 +170,8 @@ app.handleRoom.restore = function() {
 $(document).ready(function() {
   // delegate from #man div to all elements with class username, add friend on click
   $('#main').on('click', '.username', function(e) {
-    app.addFriend($(e.target).text());
+    e.preventDefault();
+    app.handleFriend($(e.target).text());
   });
   // should call app.handleSubmit when a user submits a new message on the DOM
   $('.submit').on('click',function(e) {
@@ -167,7 +186,7 @@ $(document).ready(function() {
   });
   //
   $('#roomSelect').on('change', function() {
-    app._checkRoom(false);
+    app._checkRoom();
   });
 });
 app.init();
