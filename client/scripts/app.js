@@ -16,6 +16,7 @@ app._scrubber = function(s) {
     var outputString = s.replace(/<script>/g, 'block');
     outputString = outputString.replace(/src=/g, 'block');
     outputString = outputString.replace(/javascript:/g, 'block');
+    outputString = outputString.replace(/<|\(/g, 'block');
     outputString = JSON.stringify(outputString);
   }
 
